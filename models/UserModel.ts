@@ -11,6 +11,7 @@ export interface User{
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     plan?: string;
+    projectCount?: number;
 
 }
 
@@ -56,6 +57,10 @@ const userSchema: Schema<User> = new Schema ({
         type: String,
         enum: ["Free", "Pro", "Enterprise"],
         default: "Free"
+    },
+    projectCount:{
+        type: Number,
+        default: 0
     }
 }, {timestamps: true})
 

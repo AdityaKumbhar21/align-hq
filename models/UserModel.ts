@@ -41,12 +41,6 @@ const userSchema: Schema<User> = new Schema ({
         type: Number,
         default: 40
     },
-    photoUrl: {
-        type: String
-    },
-    bio: {
-        type: String
-    },
     stripeCustomerId: {
         type: String
     },

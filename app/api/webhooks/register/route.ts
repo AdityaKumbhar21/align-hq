@@ -73,13 +73,13 @@ export async function POST(req: Request){
         })
       }
 
-      const {first_name, last_name, image_url} = evt.data
+      const {first_name, image_url} = evt.data
       let fullName = ""
-      if(!first_name || !last_name){
+      if(!first_name){
         fullName = "User"
       }
 
-      fullName = first_name + " "+ last_name
+      fullName = first_name || ""
 
       const existingUser = await UserModel.findOne({email: primary_email_address.email_address})
 

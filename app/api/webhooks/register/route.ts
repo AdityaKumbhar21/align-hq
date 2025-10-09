@@ -86,7 +86,7 @@ export async function POST(req: Request){
       if(existingUser){
         console.log("User already exists");
         return new Response("User already exists", {
-          status: 400
+          status: 404
         })
       }
 

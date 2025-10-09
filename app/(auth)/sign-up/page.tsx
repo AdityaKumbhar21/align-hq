@@ -1,81 +1,90 @@
-import { RoleSelect } from '@/components/RoleSelect';
+"use client"
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSignUp } from '@clerk/nextjs'
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 
-const page = () => {
+const Page = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("")
-  const [role, setRole] = useState("Team Member");
+  const [fullName, setFullName] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const router = useRouter();
 
-  if(!isLoaded) return null
-  
-  const handleSubmit = async (e: React.FormEvent)=>{
-    e.preventDefault()
-    if(!isLoaded) return
+  if (!isLoaded) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded) return;
+
+    setIsSubmitting(true);
+    setError("");
 
     try {
       await signUp.create({
         emailAddress,
         password,
-        firstName: fullName
-      })
+        firstName: fullName,
+      });
 
       await signUp.prepareEmailAddressVerification({
-        strategy: "email_code"
-      })
+        strategy: "email_code",
+      });
 
-      setPendingVerification(true)
-    } catch (error: any) {
-       console.error(JSON.stringify(error, null, 2));
-      setError(error.errors[0].message);
-    }
-  }
-
-  const handleVerify = async(e: React.FormEvent)=>{
-    e.preventDefault()
-    if(!isLoaded) return
-    try {
-      const completeSignup = await signUp.attemptEmailAddressVerification({
-        code
-      })
-
-      if(completeSignup.status !== "complete"){
-        setError(JSON.stringify(completeSignup, null, 2))
-      }
-      if(completeSignup.status === "complete"){
-        await setActive({session: completeSignup.createdSessionId})
-      }
-
+      setPendingVerification(true);
     } catch (error: any) {
       console.error(JSON.stringify(error, null, 2));
-      setError(error.errors[0].message);
+      setError(error.errors?.[0]?.message || "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
 
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded) return;
 
-  
+    setIsVerifying(true);
+    setError("");
+
+    try {
+      const completeSignup = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+
+      if (completeSignup.status !== "complete") {
+        setError(JSON.stringify(completeSignup, null, 2));
+      }
+      if (completeSignup.status === "complete") {
+        await setActive({ session: completeSignup.createdSessionId });
+        router.push("/choose-role");
+      }
+    } catch (error: any) {
+      console.error(JSON.stringify(error, null, 2));
+      setError(error.errors?.[0]?.message || "Verification failed");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Sign Up for Todo Master
+            Sign Up for Align-HQ
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -101,7 +110,6 @@ const page = () => {
                   required
                 />
               </div>
-              <RoleSelect value={role} onChange={setRole} />
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -125,13 +133,26 @@ const page = () => {
                   </button>
                 </div>
               </div>
+
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <Button type="submit" className="w-full">
-                Sign Up
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing Up...
+                  </>
+                ) : (
+                  "Sign Up"
+                )}
               </Button>
             </form>
           ) : (
@@ -146,17 +167,31 @@ const page = () => {
                   required
                 />
               </div>
+
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <Button type="submit" className="w-full">
-                Verify Email
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isVerifying}
+              >
+                {isVerifying ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Verify Email"
+                )}
               </Button>
             </form>
           )}
         </CardContent>
+
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
@@ -171,6 +206,6 @@ const page = () => {
       </Card>
     </div>
   );
-}
+};
 
-export default page
+export default Page;

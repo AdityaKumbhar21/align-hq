@@ -1,15 +1,16 @@
 import mongoose, { model, Schema, models } from "mongoose";
-import { User } from "./UserModel";
 
-interface Project{
+export type ObjectId = mongoose.Schema.Types.ObjectId | mongoose.Types.ObjectId;
+
+interface Projects{
     title: string;
     description: string;
-    managerId: Schema.Types.ObjectId;
-    teamMembers: User[]
+    managerId: ObjectId;
+    teamMembers: ObjectId[]
 }
 
 
-const projectSchema: Schema<Project> = new Schema({
+const projectSchema: Schema<Projects> = new Schema({
     title: {
         type: String,
         required: true
@@ -29,6 +30,6 @@ const projectSchema: Schema<Project> = new Schema({
 }, {timestamps: true})
 
 
-const Project = models.Project as mongoose.Model<Project> || model("Project", projectSchema)
+const Project = models.Project as mongoose.Model<Projects> || model("Project", projectSchema)
 
 export default Project

@@ -2,8 +2,12 @@
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useSignIn } from '@clerk/nextjs'
+import { set } from 'mongoose'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
@@ -21,7 +25,7 @@ const page = () => {
   const handleSubmit = async (e: React.FormEvent) =>{
     e.preventDefault()
     if(!isLoaded) return
-
+    setLoading(true)
     try {
       const complete_signIn = await signIn.create({
         identifier: emailAddress,
@@ -34,7 +38,8 @@ const page = () => {
       }
 
       if(complete_signIn.status === "complete"){
-        setActive({session: complete_signIn.createdSessionId})
+        await setActive({session: complete_signIn.createdSessionId})
+        toast.success("Signed in successfully!");
         router.push("/dashboard")
       }
 
@@ -48,31 +53,69 @@ const page = () => {
   }
 
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mt-20">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      <Input
-        type="email"
-        placeholder="Email"
-        value={emailAddress}
-        onChange={(e) => setEmailAddress(e.target.value)}
-        required
-      />
-      <Input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <Button type="submit" disabled={loading}>
-        {loading ? "Signing in..." : "Sign In"}
-      </Button>
-    </form>
+ return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold text-center">
+            Welcome Back
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full font-medium"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="justify-center">
+          <p className="text-sm text-muted-foreground">
+            Don’t have an account?{" "}
+            <Link
+              href="/sign-up"
+              className="text-primary hover:underline font-medium"
+            >
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
 

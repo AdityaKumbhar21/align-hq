@@ -19,10 +19,11 @@ export const dbConnect = async (): Promise<void> =>{
         if(connection.isConnected){
             console.log("DB already connected");
         }
-
-        const db = await mongoose.connect(process.env.MONGODB_URI || "")
-        connection.isConnected = db.connections[0].readyState
-        console.log("DB connected successfully");
+        else{
+            const db = await mongoose.connect(process.env.MONGODB_URI || "")
+            connection.isConnected = db.connections[0].readyState
+            console.log("DB connected successfully");
+        }
         
     } catch (error) {
         console.log("Database connection error", error);

@@ -1,0 +1,95 @@
+"use client"
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@radix-ui/react-select';
+import React, { useEffect, useState } from 'react'
+import { Project } from '../../dashboard/page';
+import { useParams } from 'next/navigation';
+import axios from 'axios';
+
+
+const page = () => {
+    const {id} = useParams()
+    const [project, setProject] = useState<Project>()
+    const [loading, setLoading] = useState(false)
+    
+
+    useEffect(()=>{
+        const fetchProject = async()=>{
+            try {
+                const res = await axios.get(`/api/project/${id}`)
+                if(res.data?.success){
+                    setProject(res.data.project)
+                }
+            } catch (error) {
+                console.log("Error getting projects (FE): ", error);
+            }finally{
+                setLoading(false)
+            }
+        }
+        fetchProject();
+    },[id])
+
+    if (loading) return <p className="text-center mt-10">Loading...</p>;
+    if (!project) return <p className="text-center mt-10">Project not found</p>;
+
+    return (
+        <div className="max-w-5xl mx-auto mt-10 space-y-8">
+        {/* Project Header */}
+        <Card>
+            <CardHeader>
+            <CardTitle className="text-2xl font-semibold flex justify-between">
+                <span>{project.title}</span>
+                <Button variant="outline">Edit Project</Button>
+            </CardTitle>
+            </CardHeader>
+            <CardContent>
+            <p className="text-gray-600 mb-2">{project.description || "No description provided."}</p>
+            <p className="text-sm"><strong>Manager:</strong> {project.managerId.fullName} ({project.managerId.email})</p>
+            </CardContent>
+        </Card>
+
+        <Separator />
+
+        {/* Team Members Section */}
+        <div>
+            <div className="flex justify-between items-center mb-3">
+            <h2 className="text-xl font-semibold">Team Members</h2>
+            <Button>Add Member</Button>
+            </div>
+            <Card>
+            <CardContent className="p-4 space-y-2">
+                {project.teamMembers.length ? (
+                project.teamMembers.map((member, idx) => (
+                    <p key={idx} className="text-sm flex justify-between">
+                    <span>{member.fullName} ({member.email})</span>
+                    <Button size="sm" variant="destructive">Remove</Button>
+                    </p>
+                ))
+                ) : (
+                <p className="text-gray-500 text-sm">No team members added yet.</p>
+                )}
+            </CardContent>
+            </Card>
+        </div>
+
+        <Separator />
+
+        {/* Tasks Section */}
+        <div>
+            <div className="flex justify-between items-center mb-3">
+            <h2 className="text-xl font-semibold">Tasks</h2>
+            <Button>Add Task</Button>
+            </div>
+            <Card>
+            <CardContent className="p-4">
+                <p className="text-gray-500 text-sm">No tasks yet. Start by adding one.</p>
+            </CardContent>
+            </Card>
+        </div>
+        </div>
+    );
+}
+
+export default page

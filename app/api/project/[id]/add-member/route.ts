@@ -3,7 +3,7 @@ import Project from "@/models/Projects";
 import UserModel from "@/models/UserModel";
 import { auth } from "@clerk/nextjs/server";
 
-export async function PATCH(req: Request, {params}:{params: { id : string}}){
+export async function PATCH(req: Request, {params}:{params: Promise<{ id : string}>}){
     const {userId} = await auth()
     if (!userId) return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
     await dbConnect();
@@ -14,7 +14,7 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
         if(!manager) return Response.json({ success: false, message: "User not found" }, { status: 404 });
 
         const {memberEmail} = await req.json()
-        const id = (await params).id
+        const { id } = await params
         const project = await Project.findById(id)
 
         if(!project){

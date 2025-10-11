@@ -49,7 +49,7 @@ const page = () => {
     <div className="max-w-4xl mx-auto mt-10 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Your Projects</h1>
-        <Link href="/projects/create">
+        <Link href="/manager/create-project">
           <Button>Create Project</Button>
         </Link>
       </div>

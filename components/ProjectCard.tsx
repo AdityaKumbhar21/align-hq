@@ -24,7 +24,7 @@ export const ProjectCard = ({
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>{title}</span>
-          <Link href={`/manager/project/${_id}`}>
+          <Link href={`/manager/dashboard/project/${_id}`}>
             <Button variant="outline" size="sm">View</Button>
           </Link>
         </CardTitle>

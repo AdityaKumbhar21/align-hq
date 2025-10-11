@@ -1,23 +1,37 @@
 import { dbConnect } from "@/lib/dbConnect";
 import Project from "@/models/Projects";
+import UserModel from "@/models/UserModel";
 import { auth } from "@clerk/nextjs/server";
 
-export async function GET(req: Request, {params} : {params: {id: string}}){
+export async function GET(req: Request, {params} : {params: Promise<{id: string}>}){
     const {userId} = await auth()
     
     if(!userId) return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
     await dbConnect();
 
     try {
-        const id = (await params).id 
-        const project = await Project.findById(id)
-        .populate("managerId", "fullName email")
-        .populate("teamMembers", "fullName email")
+        const { id } = await params 
+        
+        const projectExists = await Project.findById(id);
 
-        if(!project)return Response.json({ 
-            success: false, 
-            message: "Project not found" 
-        }, { status: 400 });
+        if (!projectExists) {
+            return Response.json({ 
+                success: false, 
+                message: "Project not found" 
+            }, { status: 404 });
+        }
+
+        const project = await Project.findById(id)
+            .populate({
+                path: "managerId",
+                model: UserModel,
+                select: "fullName email"
+            })
+            .populate({
+                path: "teamMembers",
+                model: UserModel,
+                select: "fullName email"
+            });
 
         return Response.json({ 
             success: true,
@@ -31,6 +45,4 @@ export async function GET(req: Request, {params} : {params: {id: string}}){
             message: "Internal server error",
         }, {status: 500})
     }
-
-
 }

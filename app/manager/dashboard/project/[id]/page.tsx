@@ -1,25 +1,21 @@
 "use client"
 
-
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@radix-ui/react-select';
 import React, { useEffect, useState } from 'react'
-
+import { Project } from '@/app/manager/dashboard/page';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
-
+import { AddMemberDialog } from '@/components/AddMemberDialog';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddMemberDialog } from '@/components/AddMemberDialog';
-import { Button } from '@/components/ui/button';
-import { Project } from '../../dashboard/page';
 
 
 const page = () => {
     const {id} = useParams()
     const [project, setProject] = useState<Project>()
     const [loading, setLoading] = useState(true)
-    const router = useRouter();
 
     const fetchProject = async()=>{
             try {

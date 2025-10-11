@@ -12,8 +12,11 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
     
     try {
         const manager = await UserModel.findOne({clerkId: userId})
+
         if(!manager) return Response.json({ success: false, message: "User not found" }, { status: 404 });  
+
         const {memberEmail} = await req.json()
+   
         const project = await Project.findById(params.id)
         if(!project){
             return Response.json({ 
@@ -21,6 +24,7 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
                 message: "Project not found" 
             }, { status: 404 });
         }
+
         const email = memberEmail.toLowerCase()
         const member = await UserModel.findOne({email})
         if(!member){
@@ -29,12 +33,14 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
                 message: "No user found with this email" 
             }, { status: 404 });
         }
+
         if(project.managerId.toString() !== manager._id.toString()){
             return Response.json({ 
                 success: false, 
                 message: "Not authorized to access this project" 
             }, { status: 404 });
         }
+        
         if(!project.teamMembers.includes(member._id)){
             return Response.json({ 
                 success: false, 

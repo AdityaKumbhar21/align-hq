@@ -14,8 +14,8 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
         if(!manager) return Response.json({ success: false, message: "User not found" }, { status: 404 });
 
         const {memberEmail} = await req.json()
-
-        const project = await Project.findById(params.id)
+        const id = (await params).id
+        const project = await Project.findById(id)
 
         if(!project){
             return Response.json({ 
@@ -27,6 +27,13 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
 
         const member = await UserModel.findOne({email})
 
+        if(project.managerId.toString() !== manager._id.toString()){
+            return Response.json({ 
+                success: false, 
+                message: "Not authorized to access this project" 
+            }, { status: 404 });
+        }
+
         if(!member){
             return Response.json({ 
                 success: false, 
@@ -34,11 +41,11 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
             }, { status: 404 });
         }
 
-        if(project.managerId.toString() !== manager._id.toString()){
+        if(member.role === "Manager"){  
             return Response.json({ 
                 success: false, 
-                message: "Not authorized to access this project" 
-            }, { status: 404 });
+                message: "Cannot add another manager as team member" 
+            }, { status: 400 });
         }
 
         if(project.teamMembers.includes(member._id)){
@@ -47,6 +54,7 @@ export async function PATCH(req: Request, {params}:{params: { id : string}}){
                 message: "Member already added" 
             }, { status: 200 });
         }   
+
 
         project.teamMembers.push(member._id)
         await project.save()

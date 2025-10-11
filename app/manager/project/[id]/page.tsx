@@ -7,16 +7,18 @@ import React, { useEffect, useState } from 'react'
 import { Project } from '../../dashboard/page';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
+import { AddMemberDialog } from '@/components/AddMemberDialog';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 
 const page = () => {
     const {id} = useParams()
     const [project, setProject] = useState<Project>()
     const [loading, setLoading] = useState(false)
-    
+    const router = useRouter();
 
-    useEffect(()=>{
-        const fetchProject = async()=>{
+    const fetchProject = async()=>{
             try {
                 const res = await axios.get(`/api/project/${id}`)
                 if(res.data?.success){
@@ -28,11 +30,27 @@ const page = () => {
                 setLoading(false)
             }
         }
+
+    useEffect(()=>{
         fetchProject();
     },[id])
 
     if (loading) return <p className="text-center mt-10">Loading...</p>;
     if (!project) return <p className="text-center mt-10">Project not found</p>;
+
+
+    const handleRemove = async(memberEmail: string) => {
+        try {
+            const res = await axios.patch(`/api/project/${project._id}/remove-member`, { memberEmail });
+            if(res.data?.success){
+                toast.success(res.data.message || "Member removed successfully");
+                fetchProject();
+            }
+        } catch (error) {
+            console.log("Error in deleting member: ", error);
+            toast.error("Failed to remove member");
+        }
+    }
 
     return (
         <div className="max-w-5xl mx-auto mt-10 space-y-8">
@@ -56,7 +74,7 @@ const page = () => {
         <div>
             <div className="flex justify-between items-center mb-3">
             <h2 className="text-xl font-semibold">Team Members</h2>
-            <Button>Add Member</Button>
+            <AddMemberDialog projectId={project._id} onSuccess={fetchProject} />
             </div>
             <Card>
             <CardContent className="p-4 space-y-2">
@@ -64,7 +82,7 @@ const page = () => {
                 project.teamMembers.map((member, idx) => (
                     <p key={idx} className="text-sm flex justify-between">
                     <span>{member.fullName} ({member.email})</span>
-                    <Button size="sm" variant="destructive">Remove</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleRemove(member.email)}>Remove</Button>
                     </p>
                 ))
                 ) : (
